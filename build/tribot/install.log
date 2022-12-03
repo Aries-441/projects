@@ -13,12 +13,15 @@
 /home/ljj/projecets/install/tribot/share/tribot/launch/view_tribot_world.launch.py
 /home/ljj/projecets/install/tribot/share/tribot/launch/tribot.launch.py
 /home/ljj/projecets/install/tribot/share/tribot/launch/set_kinematic.launch.py
+/home/ljj/projecets/install/tribot/share/tribot/launch/zhihu.launch.py
 /home/ljj/projecets/install/tribot/share/tribot/launch/tribot_teleop.launch.py
 /home/ljj/projecets/install/tribot/share/tribot/config/joint_names_tribot_description.yaml
+/home/ljj/projecets/install/tribot/share/tribot/urdf/mbot_base_gazebo.xacro
 /home/ljj/projecets/install/tribot/share/tribot/urdf/tribot_gazebo.xacro
 /home/ljj/projecets/install/tribot/share/tribot/urdf/tribot_lidar.xacro
 /home/ljj/projecets/install/tribot/share/tribot/urdf/tribot_base.xacro
 /home/ljj/projecets/install/tribot/share/tribot/urdf/tribot_camera.xacro
+/home/ljj/projecets/install/tribot/share/tribot/urdf/mbot_gazebo.xacro
 /home/ljj/projecets/install/tribot/share/tribot/urdf/tribot_wheel.xacro
 /home/ljj/projecets/install/tribot/share/tribot/urdf/tribot_description.urdf
 /home/ljj/projecets/install/tribot/share/tribot/urdf/tribot_description.csv

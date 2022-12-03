@@ -16,6 +16,7 @@ launch/tribot_teleop.launch
 launch/tribot_teleop.launch.py
 launch/view_tribot_gazebo_world.launch
 launch/view_tribot_world.launch.py
+launch/zhihu.launch.py
 meshes/base_link.STL
 meshes/camera_link.STL
 meshes/lidar_link.STL
@@ -32,6 +33,8 @@ tribot/kinematic.py
 tribot/node_helloworld.py
 tribot/teleop.py
 tribot/tribot_teleop.py
+urdf/mbot_base_gazebo.xacro
+urdf/mbot_gazebo.xacro
 urdf/tribot_base.xacro
 urdf/tribot_camera.xacro
 urdf/tribot_description.csv

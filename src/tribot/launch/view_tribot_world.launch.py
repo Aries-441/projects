@@ -5,7 +5,7 @@ Autor: Liujunjie/Aries-441
 StudentNumber: 521021911059
 Date: 2022-11-13 19:33:27
 E-mail: sjtu.liu.jj@gmail.com/sjtu.1518228705@sjtu.edu.cn
-LastEditTime: 2022-11-13 20:30:31
+LastEditTime: 2022-12-03 19:05:14
 '''
 import os
 
@@ -50,19 +50,18 @@ def generate_launch_description():
 
     # Run the spawner node from the gazebo_ros package. The entity name doesn't really matter if you only have a single robot.
     spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
-                        arguments=['-topic', 'robot_description',
-                                   '-entity', 'mbot',
+                        arguments=['-topic', '/robot_description',
+                                    '-entity','tribot',
+                        
                                    '-x', spawn_x_val,
                                    '-y', spawn_y_val,
                                    '-z', spawn_z_val,
                                    '-Y', spawn_yaw_val],
                         output='screen')
 
-
-
     # Launch them all!
     return LaunchDescription([
-        tribot,
         gazebo,
+        tribot,
         spawn_entity,
     ])

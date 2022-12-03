@@ -3,76 +3,65 @@ FileName:
 Description: 
 Autor: Liujunjie/Aries-441
 StudentNumber: 521021911059
-Date: 2022-11-13 19:34:39
+Date: 2022-11-18 17:03:37
 E-mail: sjtu.liu.jj@gmail.com/sjtu.1518228705@sjtu.edu.cn
-LastEditTime: 2022-11-14 19:48:30
-'''
-'''
-FileName: 
-Description: 
-Autor: Liujunjie/Aries-441
-StudentNumber: 521021911059
-Date: 2022-11-13 19:34:39
-E-mail: sjtu.liu.jj@gmail.com/sjtu.1518228705@sjtu.edu.cn
-LastEditTime: 2022-11-13 20:27:01
+LastEditTime: 2022-12-03 18:32:47
 '''
 import os
-
 from ament_index_python.packages import get_package_share_directory
-import launch
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.substitutions import LaunchConfiguration
-from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
-
-import xacro
-
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from scripts import GazeboRosPaths
 
 def generate_launch_description():
+ 
+    use_sim_time = LaunchConfiguration('use_sim_time', default='false')
+    urdf_file_name = 'urdf/tribot_description.urdf'
 
-    # Check if we're told to use sim time
-    use_sim_time = LaunchConfiguration('use_sim_time')
+    #print("urdf_file_name : {}".format(urdf_file_name))
 
-    # Process the URDF file
-    pkg_path = os.path.join(get_package_share_directory('tribot'))
-    xacro_file = os.path.join(pkg_path,'urdf','tribot_gazebo.xacro')
-    robot_description_config = xacro.process_file(xacro_file)
-
-
-    urdf_file_name = 'tribot_description.urdf'
-    urdf = os.path.join(pkg_path,
-       'urdf',
+    urdf = os.path.join(
+        get_package_share_directory('tribot'),
         urdf_file_name)
-    with open(urdf, 'r') as infp:
-        robot_desc = infp.read()
-
-
-    
-    
-    # Create a robot_state_publisher node
-    params = {'robot_description': robot_desc, 'use_sim_time': use_sim_time}
-    node_robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        output='screen',
-        parameters=[params]
-    )
-    # Create a joint_state_publisher node
-    #params = {'robot_description': robot_description_config.toxml(), 'use_sim_time': use_sim_time}
-    joint_state_publisher_node = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        #output='screen',
-        #condition=launch.conditions.IfCondition(LaunchConfiguration('gui'))
-        #parameters=[params]
-    )
-
-    # Launch!
     return LaunchDescription([
+
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='false',
-            description='Use sim time if true'),
-        node_robot_state_publisher,
-        joint_state_publisher_node
-    ])
+            description='Use simulation (Gazebo) clock if true'),
+            
+        #ExecuteProcess(
+           #cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_factory.so'],
+           #output='screen'),
+
+        Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            name='robot_state_publisher',
+            output='screen',
+            parameters=[{'use_sim_time': use_sim_time}],
+            arguments=[urdf]),
+
+        Node(
+            package='joint_state_publisher',
+            executable='joint_state_publisher',
+            name='joint_state_publisher',
+            output='screen',
+            parameters=[{'use_sim_time': use_sim_time}]
+            ),
+ 
+        #Node(
+            #package='gazebo_ros',
+            #executable='spawn_entity.py',
+            #name='urdf_spawner',
+            #utput='screen',
+            #arguments=["-topic", "/robot_description","/joint_state_publisher"
+            #"-entity", "tribot", "-x", "0.0", "-y", "0.0", "-z", "0.0"],
+            #arguments=["-topic", "robot_description", "-entity", "robot", "-x", "0.0", "-y", "0.0", "-z", "0.0"],
+            #arguments=["-entity","irb52urdf","-b","-file", urdf,],
+            
+            #)
+  ])

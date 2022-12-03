@@ -3,29 +3,26 @@ FileName:
 Description: 
 Autor: Liujunjie/Aries-441
 StudentNumber: 521021911059
-Date: 2022-11-10 19:20:01
+Date: 2022-11-18 17:03:37
 E-mail: sjtu.liu.jj@gmail.com/sjtu.1518228705@sjtu.edu.cn
-LastEditTime: 2022-11-18 13:03:00
+LastEditTime: 2022-11-28 19:22:42
 '''
-
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import rclpy
 from rclpy.node import Node
 from rclpy import time
 import numpy as np
 from gazebo_msgs.msg import ModelState
+import tf_transformations
 from geometry_msgs.msg import Twist, TransformStamped
-from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster 
+from tf2_ros import TransformBroadcaster 
 # from nav_msgs.msg import Odometry
 from math import sin,cos,atan2
-import tf
 
-init_x = 0
-init_y = 0
-init_z = 0  # 以base_footprint为整个零件的连体基
-init_theta = 0
+
+init_x = 0.0
+init_y = 0.0
+init_z = 0.0  # 以base_footprint为整个零件的连体基
+init_theta = 0.0
 
 class Set_Model_State(Node):
     global init_x, init_y, init_z, init_theta
@@ -44,32 +41,49 @@ class Set_Model_State(Node):
         super().__init__(name)  
         self.last_t=0
         self.dt=0
-        self.current_time = rclpy.time.Time()
+        self.current_time = self.get_clock().now()
         self.state = self.State(init_x, init_y, init_z, init_theta) # 初始xyz
-        self.tf2_broadcaster = StaticTransformBroadcaster(self)
+        self.tf_broadcaster = TransformBroadcaster(self)
         self.control_rate=10        # need to be adjusted further according to dt
         # publish the new position of levitator to gazebo
-        self.state_pub = self.create_publisher( ModelState,'/set_model_state', 10)
+        self.state_pub = self.create_publisher(ModelState,'gazebo/set_model_state',10)
         # subscribe control input
-        self.create_subscription (Twist,'/cmd_vel', self.MotionCallback,10)
-        self.create_subscription(ModelState,'/set_model_state',  self.broadcast_odom_tf,10)
+        self.rate_sub = self.create_subscription (Twist,'/cmd_vel',self.MotionCallback,10)
+        self.state_sub = self.create_subscription(ModelState,"gazebo/set_model_state", self.broadcast_odom_tf,10)
     
     def broadcast_odom_tf(self,model_state):
+        '''
         parent_frame = 'odom'
         child_frame = 'base_footprint'                 
-        time_now = rclpy.Time.now()
+        time_now = self.get_clock().now().seconds_nanoseconds()[0]
         translation = (model_state.pose.position.x, model_state.pose.position.y, model_state.pose.position.z)
         rotation = (model_state.pose.orientation.x,model_state.pose.orientation.y,model_state.pose.orientation.z,model_state.pose.orientation.w)
         # Send the transformation
         self.tf_broadcaster.sendTransform(translation, rotation, time_now,child_frame,parent_frame)
-
+                                      # 创建一个坐标变换的消息对象
+        '''
+        transform = TransformStamped() 
+        transform.header.stamp = self.get_clock().now().to_msg()      # 设置坐标变换消息的时间戳
+        transform.header.frame_id = 'odom'                           # 设置一个坐标变换的源坐标系
+        transform.child_frame_id = 'base_footprint'                   # 设置一个坐标变换的目标坐标系
+        transform.transform.translation.x = model_state.pose.position.x                     # 设置坐标变换中的X、Y、Z向的平移
+        transform.transform.translation.y = model_state.pose.position.y
+        transform.transform.translation.z = model_state.pose.position.z
+        #q = tf_transformations.quaternion_from_euler(0, 0, model_state.theta) # 将欧拉角转换为四元数（roll, pitch, yaw）
+        transform.transform.rotation.x = model_state.pose.orientation.x                        # 设置坐标变换中的X、Y、Z向的旋转（四元数）
+        transform.transform.rotation.y = model_state.pose.orientation.y
+        transform.transform.rotation.z = model_state.pose.orientation.z
+        transform.transform.rotation.w = model_state.pose.orientation.w
+        # Send the transformation
+        self.tf_broadcaster.sendTransform(transform)     # 广播坐标变换，海龟位置变化后，将及时更新坐标变换信息
+        
     # main function
     # receive the control signal and generate the modelstate, modify the modelstate
     # @return   NULL
     def MotionCallback(self,cmd_vel):
         state_t = ModelState()
         state_t.model_name = "tribot"
-        self.current_time = rclpy.time.Time()
+        self.current_time = self.get_clock().now().seconds_nanoseconds()[0]
         self.dt = self.current_time - self.last_t
         
         if (self.last_t==0):
@@ -93,7 +107,7 @@ class Set_Model_State(Node):
         state_p = ModelState()
         state_p.model_name = name
 
-        qtn = tf.transformations.quaternion_from_euler(0, 0, state.theta)
+        qtn = tf_transformations.quaternion_from_euler(0, 0, state.theta)
         state_p.pose.orientation.x = qtn[0]
         state_p.pose.orientation.y = qtn[1]
         state_p.pose.orientation.z = qtn[2]
@@ -118,7 +132,7 @@ class Set_Model_State(Node):
         theta_next = atan2(sin(theta_next), cos(theta_next))
         state_next = self.State(x_next, y_next, z_next, theta_next)
         return state_next
-'''       
+'''   
 if __name__ == '__main__':
     try:
         rclpy.init(args='set_kinematic')
